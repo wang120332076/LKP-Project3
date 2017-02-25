@@ -516,6 +516,20 @@ static struct root_domain def_root_domain;
 
 #endif
 
+
+#ifdef CONFIG_SCHED_LOTT_POLICY
+	/* Lottery Scheduling */
+struct lott_task {
+	unsigned long long tickets;
+	struct list_head list;
+	struct task_struct *task;	
+};
+struct lott_rq {
+	unsigned long long total_tickets;
+	struct list_head task_list;	
+};
+#endif
+
 /*
  * This is the main, per-CPU runqueue data structure.
  *
@@ -545,6 +559,11 @@ struct rq {
 
 	struct cfs_rq cfs;
 	struct rt_rq rt;
+
+#ifdef CONFIG_SCHED_LOTT_POLICY
+	/* Lottery Scheduling run-queue */
+	struct lott_rq lott;
+#endif
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	/* list of leaf cfs_rq on this cpu: */
@@ -1851,6 +1870,10 @@ static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 #include "sched_rt.c"
 #ifdef CONFIG_SCHED_DEBUG
 # include "sched_debug.c"
+#endif
+
+#ifdef CONFIG_SCHED_LOTT_POLICY
+#include "sched_lott.c"
 #endif
 
 #define sched_class_highest (&rt_sched_class)
@@ -9603,6 +9626,9 @@ void __init sched_init(void)
 		rq->calc_load_update = jiffies + LOAD_FREQ;
 		init_cfs_rq(&rq->cfs, rq);
 		init_rt_rq(&rq->rt, rq);
+#ifdef CONFIG_SCHED_LOTT_SCHED
+		init_lott_rq(&rq->lott);
+#endif
 #ifdef CONFIG_FAIR_GROUP_SCHED
 		init_task_group.shares = init_task_group_load;
 		INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);

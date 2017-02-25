@@ -7,11 +7,52 @@
  *
  */
 
-
 static const struct sched_class lott_sched_class;
 
+/* Initialize parameters in rq */
+static void init_lott_rq(struct lott_rq *lott_rq)
+{
+	lott_rq->total_tickets = 0;
+	INIT_LIST_HEAD(&(lott_rq->tasks));
+}
+
+/* Enqueue a runnable task:
+ *  1. Pull out lott_task descriptor in overall task list (ignore runnability)
+ *  2. Put lott_task in queue (list) according to its ticket#
+ *  3. Give an initial tickets <- *SHOULD NOT BE HERE (INITIALIZATION)
+ *  4. Record total ticket#
+ */
+static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, bool head)
+{
+	struct lott_rq *lott_rq;
+
+	if(p)
+	{
+	
+
+	}
 
 
+//	p->tickets = 100;
+	rq->lott.total_tickets += p->tickets;
+	
+	printk(KERN_ALERT "enqueue_task_lott\n");
+}
+
+/* */
+static void dequeue_task_lott
+{
+}
+
+/* */
+static void yield_task_lott
+{
+}
+
+/* */
+static void pick_next_task_lott
+{
+}
 
 /*
  * All the scheduling class methods:

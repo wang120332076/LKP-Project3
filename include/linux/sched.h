@@ -36,6 +36,10 @@
 #define SCHED_FIFO		1
 #define SCHED_RR		2
 #define SCHED_BATCH		3
+/* Lottery Scheduling for Project 3 */
+#ifdef CONFIG_SCHED_LOTT_POLICY
+#define SCHED_LOTT		6
+#endif
 /* SCHED_ISO: reserved but not implemented yet */
 #define SCHED_IDLE		5
 /* Can be ORed in to make sure the process is reverted back to SCHED_NORMAL on fork */
@@ -1229,6 +1233,11 @@ struct task_struct {
 	unsigned int ptrace;
 
 	int lock_depth;		/* BKL lock depth */
+
+	/* Attributes for Lottery Scheduling */
+#ifdef CONFIG_SCHED_LOTT_POLICY
+	unsigned long long tickets; /* 0 ~ (2^63-1)*/
+#endif
 
 #ifdef CONFIG_SMP
 #ifdef __ARCH_WANT_UNLOCKED_CTXSW
