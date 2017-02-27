@@ -1867,14 +1867,13 @@ static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 
 #include "sched_stats.h"
 #include "sched_idletask.c"
+#ifdef CONFIG_SCHED_LOTT_POLICY
+#include "sched_lott.c"
+#endif
 #include "sched_fair.c"
 #include "sched_rt.c"
 #ifdef CONFIG_SCHED_DEBUG
 # include "sched_debug.c"
-#endif
-
-#ifdef CONFIG_SCHED_LOTT_POLICY
-#include "sched_lott.c"
 #endif
 
 #define sched_class_highest (&rt_sched_class)

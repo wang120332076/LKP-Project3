@@ -12,7 +12,7 @@ static const struct sched_class lott_sched_class;
 /* Initialize parameters in rq */
 void init_lott_rq(struct lott_rq *lott_rq)
 {
-	lott_rq->total_tickets = 0;
+	lott_rq->total_tickets = 100;
 	INIT_LIST_HEAD(&(lott_rq->task_list));
 }
 
@@ -24,23 +24,30 @@ void init_lott_rq(struct lott_rq *lott_rq)
  */
 static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, bool head)
 {
+	struct lott_rq *lott_rq = &rq->lott;
+	
 
 	if(p)
 	{
-	
-
+		rq->lott.total_tickets += p->tickets;
+		list_add_tail(&p->elem, &lott_rq->task_list);		
 	}
 
-
-//	p->tickets = 100;
-	rq->lott.total_tickets += p->tickets;
-	
 	printk(KERN_ALERT "enqueue_task_lott\n");
 }
 
 /* */
 static void dequeue_task_lott(struct rq *rq, struct task_struct *p, int sleep)
 {
+	//struct lott_rq *lott_rq = &rq->lott;
+
+	if(p)
+	{
+		rq->lott.total_tickets -= p->tickets;
+		list_del(&p->elem);
+	}
+
+	printk(KERN_ALERT "dequeue_task_lott\n");
 }
 
 /* */
@@ -51,7 +58,22 @@ static void yield_task_lott(struct rq *rq)
 /* */
 static struct task_struct *pick_next_task_lott(struct rq *rq)
 {
-	return NULL;
+	struct lott_rq *lott_rq = &rq->lott;
+	struct list_head *first;
+	struct task_struct *ret = NULL;
+	/* First element is head->next because head is a sentinel node */
+	
+	if (list_empty(&lott_rq->task_list))
+	{
+		goto out;
+	}
+
+        first = lott_rq->task_list.next;
+	ret = list_entry(first, struct task_struct, elem);
+out:
+	//printk(KERN_ALERT "number of tickets is %d\n", lott_rq->total_tickets);
+	//printk(KERN_ALERT "picking next task\n");
+	return ret;
 }
 
 static void check_preempt_curr_lott(struct rq *rq, struct task_struct *p, int flags)
@@ -124,7 +146,13 @@ static void set_curr_task_lott(struct rq *rq)
 
 static void task_tick_lott(struct rq *rq, struct task_struct *p, int queued)
 {
-       //check_preempt_curr_lott(rq, p);
+	static int tick_count = 0;
+	if (tick_count++ == 4)
+	{
+		tick_count = 0;
+		resched_task(p);
+		printk(KERN_ALERT "Rescheduling task\n");
+	}	
 }
 
 static void task_fork_lott(struct task_struct *p)
@@ -149,24 +177,11 @@ static void switched_from_lott(struct rq *rq, struct task_struct *p,
 static void switched_to_lott(struct rq *rq, struct task_struct *p,
                            int running)
 {
-        /*
-         * If we are already running, then there's nothing
-         * that needs to be done. But if we are not running
-         * we may need to preempt the current running task.
-         * If that current running task is also an RT task
-         * then see if we can move to another run queue.
-         */
 }
 
 unsigned int get_rr_interval_lott(struct rq *rq, struct task_struct *task)
 {
-       /*
-         * Time slice is 0 for SCHED_FIFO tasks
-         */
-        if (task->policy == SCHED_RR)
-                return DEF_TIMESLICE;
-        else
-                return 0;
+	return 0;
 }
 
 void moved_group_lott(struct task_struct *p, int on_rq)
@@ -176,7 +191,7 @@ void moved_group_lott(struct task_struct *p, int on_rq)
  * All the scheduling class methods:
  */
 static const struct sched_class lott_sched_class = {
-	.next			= &fair_sched_class,
+	.next			= &idle_sched_class,
 	.enqueue_task		= enqueue_task_lott,
 	.dequeue_task		= dequeue_task_lott,
 	.yield_task		= yield_task_lott,
