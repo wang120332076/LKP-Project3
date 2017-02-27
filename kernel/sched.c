@@ -524,6 +524,7 @@ struct lott_task {
 	struct list_head list;
 	struct task_struct *task;	
 };
+
 struct lott_rq {
 	unsigned long long total_tickets;
 	struct list_head task_list;	

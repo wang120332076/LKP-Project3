@@ -10,10 +10,10 @@
 static const struct sched_class lott_sched_class;
 
 /* Initialize parameters in rq */
-static void init_lott_rq(struct lott_rq *lott_rq)
+void init_lott_rq(struct lott_rq *lott_rq)
 {
 	lott_rq->total_tickets = 0;
-	INIT_LIST_HEAD(&(lott_rq->tasks));
+	INIT_LIST_HEAD(&(lott_rq->task_list));
 }
 
 /* Enqueue a runnable task:
@@ -24,7 +24,6 @@ static void init_lott_rq(struct lott_rq *lott_rq)
  */
 static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, bool head)
 {
-	struct lott_rq *lott_rq;
 
 	if(p)
 	{
@@ -40,20 +39,139 @@ static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, 
 }
 
 /* */
-static void dequeue_task_lott
+static void dequeue_task_lott(struct rq *rq, struct task_struct *p, int sleep)
 {
 }
 
 /* */
-static void yield_task_lott
+static void yield_task_lott(struct rq *rq)
 {
 }
 
 /* */
-static void pick_next_task_lott
+static struct task_struct *pick_next_task_lott(struct rq *rq)
+{
+	return NULL;
+}
+
+static void check_preempt_curr_lott(struct rq *rq, struct task_struct *p, int flags)
 {
 }
 
+static void put_prev_task_lott(struct rq *rq, struct task_struct *prev)
+{
+}
+
+#ifdef CONFIG_SMP
+static int select_task_rq_lott(struct rq *rq, struct task_struct *p, int sd_flag, int flags)
+{
+	return 0;
+}
+
+static unsigned long load_balance_lott(struct rq *this_rq, int this_cpu, struct rq *busiest,
+                 unsigned long max_load_move,
+                 struct sched_domain *sd, enum cpu_idle_type idle,
+                 int *all_pinned, int *this_best_prio)
+{
+       return 0;
+}
+
+static int move_one_task_lott(struct rq *this_rq, int this_cpu, struct rq *busiest,
+                  struct sched_domain *sd, enum cpu_idle_type idle)
+{
+       return 0;
+}
+
+static void pre_schedule_lott(struct rq *this_rq, struct task_struct *task)
+{
+}
+
+static void post_schedule_lott(struct rq *this_rq)
+{
+}
+
+static void set_cpus_allowed_lott(struct task_struct *p,
+                                  const struct cpumask *newmask)
+{
+}
+
+/* Assumes rq->lock is held */
+static void rq_online_lott(struct rq *rq)
+{
+
+}
+
+/* Assumes rq->lock is held */
+static void rq_offline_lott(struct rq *rq)
+{
+
+}
+
+static void task_waking_lott(struct rq *rq, struct task_struct *p)
+{
+}
+
+static void task_woken_lott(struct rq *rq, struct task_struct *p)
+{
+}
+
+#endif
+
+static void set_curr_task_lott(struct rq *rq)
+{
+
+}
+
+static void task_tick_lott(struct rq *rq, struct task_struct *p, int queued)
+{
+       //check_preempt_curr_lott(rq, p);
+}
+
+static void task_fork_lott(struct task_struct *p)
+{
+}
+
+/*
+ * Priority of the task has changed. This may cause
+ * us to initiate a push or pull.
+ */
+static void prio_changed_lott(struct rq *rq, struct task_struct *p,
+                           int oldprio, int running)
+{
+
+}
+
+static void switched_from_lott(struct rq *rq, struct task_struct *p,
+                           int running)
+{
+}
+
+static void switched_to_lott(struct rq *rq, struct task_struct *p,
+                           int running)
+{
+        /*
+         * If we are already running, then there's nothing
+         * that needs to be done. But if we are not running
+         * we may need to preempt the current running task.
+         * If that current running task is also an RT task
+         * then see if we can move to another run queue.
+         */
+}
+
+unsigned int get_rr_interval_lott(struct rq *rq, struct task_struct *task)
+{
+       /*
+         * Time slice is 0 for SCHED_FIFO tasks
+         */
+        if (task->policy == SCHED_RR)
+                return DEF_TIMESLICE;
+        else
+                return 0;
+}
+
+void moved_group_lott(struct task_struct *p, int on_rq)
+{
+}
 /*
  * All the scheduling class methods:
  */
@@ -63,7 +181,7 @@ static const struct sched_class lott_sched_class = {
 	.dequeue_task		= dequeue_task_lott,
 	.yield_task		= yield_task_lott,
 
-	.check_preempt_curr	= check_preempt_wakeup,
+	.check_preempt_curr	= check_preempt_curr_lott,
 
 	.pick_next_task		= pick_next_task_lott,
 	.put_prev_task		= put_prev_task_lott,
@@ -73,10 +191,14 @@ static const struct sched_class lott_sched_class = {
 
 	.load_balance		= load_balance_lott,
 	.move_one_task		= move_one_task_lott,
+	.pre_schedule		= pre_schedule_lott,
+	.post_schedule		= post_schedule_lott,
+	.set_cpus_allowed	= set_cpus_allowed_lott,
 	.rq_online		= rq_online_lott,
 	.rq_offline		= rq_offline_lott,
 
 	.task_waking		= task_waking_lott,
+	.task_woken		= task_woken_lott,
 #endif
 
 	.set_curr_task          = set_curr_task_lott,
@@ -84,6 +206,7 @@ static const struct sched_class lott_sched_class = {
 	.task_fork		= task_fork_lott,
 
 	.prio_changed		= prio_changed_lott,
+	.switched_from		= switched_from_lott,
 	.switched_to		= switched_to_lott,
 
 	.get_rr_interval	= get_rr_interval_lott,
