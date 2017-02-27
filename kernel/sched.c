@@ -1867,10 +1867,10 @@ static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 
 #include "sched_stats.h"
 #include "sched_idletask.c"
+#include "sched_fair.c"
 #ifdef CONFIG_SCHED_LOTT_POLICY
 #include "sched_lott.c"
 #endif
-#include "sched_fair.c"
 #include "sched_rt.c"
 #ifdef CONFIG_SCHED_DEBUG
 # include "sched_debug.c"
@@ -9626,7 +9626,7 @@ void __init sched_init(void)
 		rq->calc_load_update = jiffies + LOAD_FREQ;
 		init_cfs_rq(&rq->cfs, rq);
 		init_rt_rq(&rq->rt, rq);
-#ifdef CONFIG_SCHED_LOTT_SCHED
+#ifdef CONFIG_SCHED_LOTT_POLICY
 		init_lott_rq(&rq->lott);
 #endif
 #ifdef CONFIG_FAIR_GROUP_SCHED

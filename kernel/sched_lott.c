@@ -12,7 +12,7 @@ static const struct sched_class lott_sched_class;
 /* Initialize parameters in rq */
 void init_lott_rq(struct lott_rq *lott_rq)
 {
-	lott_rq->total_tickets = 100;
+	lott_rq->total_tickets = 0;
 	INIT_LIST_HEAD(&(lott_rq->task_list));
 }
 
@@ -27,8 +27,7 @@ static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, 
 	struct lott_rq *lott_rq = &rq->lott;
 	
 
-	if(p)
-	{
+	if (p) {
 		rq->lott.total_tickets += p->tickets;
 		list_add_tail(&p->elem, &lott_rq->task_list);		
 	}
@@ -41,8 +40,7 @@ static void dequeue_task_lott(struct rq *rq, struct task_struct *p, int sleep)
 {
 	//struct lott_rq *lott_rq = &rq->lott;
 
-	if(p)
-	{
+	if (p) {
 		rq->lott.total_tickets -= p->tickets;
 		list_del(&p->elem);
 	}
@@ -64,9 +62,7 @@ static struct task_struct *pick_next_task_lott(struct rq *rq)
 	/* First element is head->next because head is a sentinel node */
 	
 	if (list_empty(&lott_rq->task_list))
-	{
 		goto out;
-	}
 
         first = lott_rq->task_list.next;
 	ret = list_entry(first, struct task_struct, elem);
@@ -191,7 +187,7 @@ void moved_group_lott(struct task_struct *p, int on_rq)
  * All the scheduling class methods:
  */
 static const struct sched_class lott_sched_class = {
-	.next			= &idle_sched_class,
+	.next			= &fair_sched_class,
 	.enqueue_task		= enqueue_task_lott,
 	.dequeue_task		= dequeue_task_lott,
 	.yield_task		= yield_task_lott,
