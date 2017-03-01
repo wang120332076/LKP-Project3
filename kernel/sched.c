@@ -6356,6 +6356,9 @@ __setscheduler(struct rq *rq, struct task_struct *p, int policy, int prio)
 	case SCHED_RR:
 		p->sched_class = &rt_sched_class;
 		break;
+	case SCHED_LOTT:
+		p->sched_class = &lott_sched_class;
+		break;
 	}
 
 	p->rt_priority = prio;
@@ -6403,7 +6406,8 @@ recheck:
 
 		if (policy != SCHED_FIFO && policy != SCHED_RR &&
 				policy != SCHED_NORMAL && policy != SCHED_BATCH &&
-				policy != SCHED_IDLE)
+				policy != SCHED_IDLE &&
+				policy != SCHED_LOTT)
 			return -EINVAL;
 	}
 

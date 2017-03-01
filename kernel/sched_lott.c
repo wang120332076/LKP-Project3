@@ -32,7 +32,7 @@ static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, 
 		list_add_tail(&p->elem, &lott_rq->task_list);		
 	}
 
-	printk(KERN_ALERT "enqueue_task_lott\n");
+	printk(KERN_ALERT "enqueue_task_lott task %p\n", p);
 }
 
 /* */
@@ -66,6 +66,7 @@ static struct task_struct *pick_next_task_lott(struct rq *rq)
 
         first = lott_rq->task_list.next;
 	ret = list_entry(first, struct task_struct, elem);
+	printk("Chose task %p\n", ret);
 out:
 	//printk(KERN_ALERT "number of tickets is %d\n", lott_rq->total_tickets);
 	//printk(KERN_ALERT "picking next task\n");
