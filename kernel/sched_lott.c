@@ -28,21 +28,16 @@ static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, 
 		list_add(&p->elem, &lott_rq->task_list);		
 	}
 
-	printk(KERN_ALERT "enqueue_task_lott task %p\n", p);
 }
 
 /* */
 static void dequeue_task_lott(struct rq *rq, struct task_struct *p, int sleep)
 {
-	//struct lott_rq *lott_rq = &rq->lott;
-
 	if (p) {
 		BUG_ON(rq->lott.total_tickets < 0);
 		rq->lott.total_tickets -= p->se.load.weight;
 		list_del(&p->elem);
 	}
-
-	printk(KERN_ALERT "dequeue_task_lott\n");
 }
 
 /* */
@@ -68,16 +63,13 @@ static struct task_struct *pick_next_task_lott(struct rq *rq)
 	rand %= lott_rq->total_tickets;
         first = &lott_rq->task_list;
 
-	printk(KERN_ALERT "Winner is %llu\n", rand);
         list_for_each_entry(entry, first, elem) {
 		total += entry->se.load.weight;
-		printk (KERN_ALERT "Total is %llu\n", total);
 		if (total > rand) {
 			ret = entry;
 			break;
 		}
         }
-	printk("Chose task %p\n", ret);
 out:
 	return ret;
 }
@@ -157,7 +149,6 @@ static void task_tick_lott(struct rq *rq, struct task_struct *p, int queued)
 	{
 		tick_count = 0;
 		resched_task(p);
-		printk(KERN_ALERT "Rescheduling task\n");
 	}	
 }
 
