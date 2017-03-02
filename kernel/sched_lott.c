@@ -1,3 +1,5 @@
+#include "linux/random.h"
+
 /*
  * TODO: Declare sched_class for this project3
  * 	 Implement each basic operation fucntions of this scheduler
@@ -14,13 +16,7 @@ void init_lott_rq(struct lott_rq *lott_rq)
 {
 	lott_rq->total_tickets = 0;
 	INIT_LIST_HEAD(&(lott_rq->task_list));
-}
-
-/* Enqueue a runnable task:
- *  1. Pull out lott_task descriptor in overall task list (ignore runnability)
- *  2. Put lott_task in queue (list) according to its ticket#
- *  3. Give an initial tickets <- *SHOULD NOT BE HERE (INITIALIZATION)
- *  4. Record total ticket#
+} /* Enqueue a runnable task: *  1. Pull out lott_task descriptor in overall task list (ignore runnability) *  2. Put lott_task in queue (list) according to its ticket# *  3. Give an initial tickets <- *SHOULD NOT BE HERE (INITIALIZATION) *  4. Record total ticket#
  */
 static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, bool head)
 {
@@ -28,8 +24,8 @@ static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, 
 	
 
 	if (p) {
-		rq->lott.total_tickets += p->tickets;
-		list_add_tail(&p->elem, &lott_rq->task_list);		
+		rq->lott.total_tickets += p->se.load.weight;
+		list_add(&p->elem, &lott_rq->task_list);		
 	}
 
 	printk(KERN_ALERT "enqueue_task_lott task %p\n", p);
@@ -41,7 +37,8 @@ static void dequeue_task_lott(struct rq *rq, struct task_struct *p, int sleep)
 	//struct lott_rq *lott_rq = &rq->lott;
 
 	if (p) {
-		rq->lott.total_tickets -= p->tickets;
+		BUG_ON(rq->lott.total_tickets < 0);
+		rq->lott.total_tickets -= p->se.load.weight;
 		list_del(&p->elem);
 	}
 
@@ -58,18 +55,30 @@ static struct task_struct *pick_next_task_lott(struct rq *rq)
 {
 	struct lott_rq *lott_rq = &rq->lott;
 	struct list_head *first;
+	struct task_struct *entry;
+	u64 rand;
+	u64 total = 0;
 	struct task_struct *ret = NULL;
 	/* First element is head->next because head is a sentinel node */
 	
 	if (list_empty(&lott_rq->task_list))
 		goto out;
 
-        first = lott_rq->task_list.next;
-	ret = list_entry(first, struct task_struct, elem);
+	get_random_bytes(&rand, sizeof(u64));
+	rand %= lott_rq->total_tickets;
+        first = &lott_rq->task_list;
+
+	printk(KERN_ALERT "Winner is %llu\n", rand);
+        list_for_each_entry(entry, first, elem) {
+		total += entry->se.load.weight;
+		printk (KERN_ALERT "Total is %llu\n", total);
+		if (total > rand) {
+			ret = entry;
+			break;
+		}
+        }
 	printk("Chose task %p\n", ret);
 out:
-	//printk(KERN_ALERT "number of tickets is %d\n", lott_rq->total_tickets);
-	//printk(KERN_ALERT "picking next task\n");
 	return ret;
 }
 
@@ -188,7 +197,7 @@ void moved_group_lott(struct task_struct *p, int on_rq)
  * All the scheduling class methods:
  */
 static const struct sched_class lott_sched_class = {
-	.next			= &fair_sched_class,
+	.next			= &idle_sched_class,
 	.enqueue_task		= enqueue_task_lott,
 	.dequeue_task		= dequeue_task_lott,
 	.yield_task		= yield_task_lott,

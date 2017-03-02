@@ -526,7 +526,7 @@ struct lott_task {
 };
 
 struct lott_rq {
-	unsigned long long total_tickets;
+	long long total_tickets;
 	struct list_head task_list;	
 };
 #endif
@@ -1867,10 +1867,10 @@ static inline void __set_task_cpu(struct task_struct *p, unsigned int cpu)
 
 #include "sched_stats.h"
 #include "sched_idletask.c"
-#include "sched_fair.c"
 #ifdef CONFIG_SCHED_LOTT_POLICY
 #include "sched_lott.c"
 #endif
+#include "sched_fair.c"
 #include "sched_rt.c"
 #ifdef CONFIG_SCHED_DEBUG
 # include "sched_debug.c"
