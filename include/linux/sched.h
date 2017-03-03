@@ -1237,6 +1237,7 @@ struct task_struct {
 	/* Attributes for Lottery Scheduling */
 #ifdef CONFIG_SCHED_LOTT_POLICY
 	struct list_head elem;
+	unsigned long long bonus_tickets;
 #endif
 
 #ifdef CONFIG_SMP

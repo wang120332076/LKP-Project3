@@ -1,11 +1,10 @@
 #include "linux/random.h"
 
-/*
- * TODO: Declare sched_class for this project3
- * 	 Implement each basic operation fucntions of this scheduler
- * 	 Add *original* features
- *
- * Algorithm: Lottery scheduling (based on RNG)
+#define BONUS_FOR_SLEEPER 500
+
+/* 
+ * Lottery scheduler for project 3
+ * By: Lance Chao & Chenhao Wang
  *
  */
 
@@ -16,16 +15,33 @@ void init_lott_rq(struct lott_rq *lott_rq)
 {
 	lott_rq->total_tickets = 0;
 	INIT_LIST_HEAD(&(lott_rq->task_list));
-} /* Enqueue a runnable task: *  1. Pull out lott_task descriptor in overall task list (ignore runnability) *  2. Put lott_task in queue (list) according to its ticket# *  3. Give an initial tickets <- *SHOULD NOT BE HERE (INITIALIZATION) *  4. Record total ticket#
- */
+}
+
+/* Enqueue task */
 static void enqueue_task_lott(struct rq *rq, struct task_struct *p, int wakeup, bool head)
 {
 	struct lott_rq *lott_rq = &rq->lott;
-	
+	struct list_head *first;
+	struct task_struct *entry;
+	unsigned long long curr_task_tickets;
 
 	if (p) {
-		rq->lott.total_tickets += p->se.load.weight;
-		list_add(&p->elem, &lott_rq->task_list);		
+		if (wakeup) {
+			p->bonus_tickets = BONUS_FOR_SLEEPER;
+		} else {
+			p->bonus_tickets = 0;
+		}
+		
+		curr_task_tickets = p->se.load.weight + p->bonus_tickets;
+		rq->lott.total_tickets += curr_task_tickets;
+	
+		first = &lott_rq->task_list;
+		list_for_each_entry(entry, first, elem) {
+			if(curr_task_tickets > (entry->se.load.weight + entry->bonus_tickets)){
+				break;
+			}		
+		}
+		list_add(&p->elem, &entry->elem);		
 	}
 
 }
@@ -54,7 +70,6 @@ static struct task_struct *pick_next_task_lott(struct rq *rq)
 	u64 rand;
 	u64 total = 0;
 	struct task_struct *ret = NULL;
-	/* First element is head->next because head is a sentinel node */
 	
 	if (list_empty(&lott_rq->task_list))
 		goto out;
@@ -64,12 +79,16 @@ static struct task_struct *pick_next_task_lott(struct rq *rq)
         first = &lott_rq->task_list;
 
         list_for_each_entry(entry, first, elem) {
-		total += entry->se.load.weight;
+		total += (entry->se.load.weight + entry->bonus_tickets);
 		if (total > rand) {
 			ret = entry;
 			break;
 		}
         }
+	if(ret->bonus_tickets){
+		ret->bonus_tickets = 0;
+		lott_rq->total_tickets -= BONUS_FOR_SLEEPER;
+	}
 out:
 	return ret;
 }
@@ -118,13 +137,11 @@ static void set_cpus_allowed_lott(struct task_struct *p,
 /* Assumes rq->lock is held */
 static void rq_online_lott(struct rq *rq)
 {
-
 }
 
 /* Assumes rq->lock is held */
 static void rq_offline_lott(struct rq *rq)
 {
-
 }
 
 static void task_waking_lott(struct rq *rq, struct task_struct *p)
@@ -134,7 +151,6 @@ static void task_waking_lott(struct rq *rq, struct task_struct *p)
 static void task_woken_lott(struct rq *rq, struct task_struct *p)
 {
 }
-
 #endif
 
 static void set_curr_task_lott(struct rq *rq)
@@ -145,8 +161,7 @@ static void set_curr_task_lott(struct rq *rq)
 static void task_tick_lott(struct rq *rq, struct task_struct *p, int queued)
 {
 	static int tick_count = 0;
-	if (tick_count++ == 4)
-	{
+	if (tick_count++ == 4) {
 		tick_count = 0;
 		resched_task(p);
 	}	

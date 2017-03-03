@@ -518,13 +518,7 @@ static struct root_domain def_root_domain;
 
 
 #ifdef CONFIG_SCHED_LOTT_POLICY
-	/* Lottery Scheduling */
-struct lott_task {
-	unsigned long long tickets;
-	struct list_head list;
-	struct task_struct *task;	
-};
-
+/* Lottery Scheduling */
 struct lott_rq {
 	long long total_tickets;
 	struct list_head task_list;	

@@ -202,7 +202,7 @@ sys_clone(unsigned long newusp, unsigned long flags, int *parent_tid, int *child
 	if (!newusp)
 		newusp = rdusp();
 
-	return do_fork(flags, newusp, regs, 0, parent_tid, child_tid);
+	Return do_fork(flags, newusp, regs, 0, parent_tid, child_tid);
 }
 
 /*
